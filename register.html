@@ -111,27 +111,21 @@
         document.getElementById('mentor-extra').classList.toggle('hidden', role !== 'mentor');
     }
 
-    // 2. Логика регистрации
-    document.getElementById('register-form').onsubmit = function(e) {
+        // 2. Логика регистрации
+        document.getElementById('register-form').onsubmit = function(e) {
         e.preventDefault();
-
         const email = document.getElementById('email').value;
-        const name = document.getElementById('full-name').value;
-        const pass = document.getElementById('password').value;
-        const emailError = document.getElementById('email-error');
-
-        // Валидация корпоративной почты
-        // Список бесплатных доменов для запрета
-        const forbiddenDomains = ['gmail.com', 'mail.ru', 'yandex.ru', 'bk.ru', 'list.ru', 'outlook.com'];
         const domain = email.split('@')[1];
+        const forbidden = ['gmail.com', 'mail.ru', 'yandex.ru', 'bk.ru', 'list.ru'];
 
-        if (forbiddenDomains.includes(domain)) {
-            emailError.style.display = 'block';
+        // Если выбран МЕНТОР и почта личная — выдаем ошибку
+        if (currentRole === 'mentor' && forbidden.includes(domain)) {
+            alert('Менторы должны использовать только корпоративную почту своего предприятия!');
             return;
-        } else {
-            emailError.style.display = 'none';
         }
 
+        // В остальном логика сохранения остается прежней...
+        // (Код сохранения в localStorage из предыдущего шага)
         // 3. Сохранение в базу (LocalStorage)
         let users = JSON.parse(localStorage.getItem('users')) || [];
 
@@ -164,4 +158,5 @@
 </script>
 
 </body>
+
 </html>
