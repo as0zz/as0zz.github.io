@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель Ментора | IT-Ментор</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #6366F1; --bg: #F9FAFB; --text: #111827; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; color: var(--text); }
+
+        header { background: white; padding: 1rem 5%; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 800; color: var(--primary); text-decoration: none; font-size: 1.25rem; }
+        .nav-links a { text-decoration: none; color: #4B5563; font-weight: 500; margin-left: 1.5rem; font-size: 0.9rem; cursor: pointer; }
+
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+
+        .mentor-hero {
+            background: #1E1B4B; border-radius: 16px; padding: 2.5rem; color: white; margin-bottom: 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .mentor-hero h1 { margin: 0; font-size: 1.8rem; }
+        .spec-badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-top: 10px; display: inline-block; }
+
+        .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; }
+
+        .card { background: white; border-radius: 12px; border: 1px solid #E5E7EB; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
+        .card-header h2 { font-size: 1.1rem; margin: 0; }
+
+        .btn-add { background: var(--primary); color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; }
+
+        /* Список студентов */
+        .student-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F3F4F6; }
+        .student-item:last-child { border: none; }
+        .s-avatar { width: 40px; height: 40px; border-radius: 50%; }
+        .s-info { flex: 1; }
+        .s-name { font-weight: 600; font-size: 0.9rem; display: block; }
+        .s-role { font-size: 0.75rem; color: #6B7280; }
+        .btn-chat-sm { text-decoration: none; font-size: 0.75rem; color: var(--primary); font-weight: 600; }
+
+        .empty { text-align: center; color: #9CA3AF; padding: 2rem; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">⚡ IT-Mentor <span style="font-size: 0.7rem; vertical-align: middle; opacity: 0.7;">FOR MENTORS</span></a>
+        <nav class="nav-links">
+            <a href="my_meetings.html">Мои события</a>
+            <a href="chat.html">Сообщения</a>
+            <a href="profile.html">Профиль</a>
+            <a onclick="logout()" style="color:#EF4444">Выйти</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="mentor-hero">
+            <div>
+                <h1 id="mentor-name">Загрузка...</h1>
+                <div id="mentor-spec" class="spec-badge">Senior Developer</div>
+                <p style="opacity: 0.8; margin-top: 1rem;">Ваш профиль активен и виден студентам. У вас 0 новых заявок.</p>
+            </div>
+            <img id="mentor-avatar" src="" style="width:100px; height:100px; border-radius:50%; border: 4px solid rgba(255,255,255,0.1);">
+        </div>
+
+        <div class="grid">
+            <section>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Ближайшие воркшопы и встречи</h2>
+                        <a href="create_meeting.html" class="btn-add">+ Создать встречу</a>
+                    </div>
+                    <div id="meetings-list" class="empty">
+                        У вас пока нет запланированных встреч. Создайте первое событие, чтобы привлечь студентов.
+                    </div>
+                </div>
+            </section>
+
+            <aside>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Ваши студенты</h2>
+                    </div>
+                    <div id="students-list">
+                        <div class="empty">Студентов пока нет</div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const allUsers = JSON.parse(localStorage.getItem('users')) || [];
+
+        if (!currentUser || currentUser.role !== 'mentor') {
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('mentor-name').textContent = `Панель ментора: ${currentUser.name}`;
+            document.getElementById('mentor-spec').textContent = currentUser.specialization.toUpperCase();
+            document.getElementById('mentor-avatar').src = currentUser.avatar;
+
+            renderMyStudents();
+        }
+
+        function renderMyStudents() {
+            const list = document.getElementById('students-list');
+            // Находим студентов, у которых этот ментор в избранном (favorites)
+            const myStudents = allUsers.filter(u =>
+                u.role === 'student' &&
+                u.favorites &&
+                u.favorites.includes(currentUser.id)
+            );
+
+            if (myStudents.length > 0) {
+                list.innerHTML = '';
+                myStudents.forEach(s => {
+                    const div = document.createElement('div');
+                    div.className = 'student-item';
+                    div.innerHTML = `
+                        <img src="${s.avatar}" class="s-avatar">
+                        <div class="s-info">
+                            <span class="s-name">${s.name}</span>
+                            <span class="s-role">Студент</span>
+                        </div>
+                        <a href="chat.html?with=${s.id}" class="btn-chat-sm">Чат</a>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

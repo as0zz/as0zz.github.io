@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход | IT-Ментор</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4F46E5; --bg: #F3F4F6; --text: #1F2937; }
+        body {
+            font-family: 'Inter', sans-serif; background-color: var(--bg);
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
+        }
+        .auth-card {
+            background: white; padding: 2.5rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 100%; max-width: 400px; box-sizing: border-box;
+        }
+        .logo { text-align: center; color: var(--primary); font-weight: 800; font-size: 1.5rem; margin-bottom: 2rem; display: block; text-decoration: none; }
+        h2 { text-align: center; margin: 0 0 1.5rem; font-size: 1.25rem; color: #111827; }
+
+        .form-group { margin-bottom: 1.25rem; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #374151; }
+        input {
+            width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px;
+            box-sizing: border-box; font-size: 1rem; transition: border-color 0.2s;
+        }
+        input:focus { outline: none; border-color: var(--primary); }
+
+        .error-box {
+            background: #FEF2F2; color: #B91C1C; padding: 0.75rem; border-radius: 8px;
+            font-size: 0.85rem; margin-bottom: 1rem; display: none; text-align: center;
+        }
+
+        .btn-submit {
+            width: 100%; background: var(--primary); color: white; padding: 0.875rem;
+            border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+        }
+        .btn-submit:hover { background: #4338CA; }
+
+        .footer-text { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: #6B7280; }
+        .footer-text a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div class="auth-card">
+    <a href="index.html" class="logo">⚡ IT-Ментор</a>
+    <h2>С возвращением!</h2>
+
+    <div id="error-message" class="error-box">Неверный email или пароль</div>
+
+    <form id="login-form">
+        <div class="form-group">
+            <label>Ваш Email</label>
+            <input type="email" id="email" placeholder="name@company.com" required>
+        </div>
+
+        <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <label style="margin:0;">Пароль</label>
+                <a href="#" style="font-size: 0.75rem; color: var(--primary); text-decoration: none;">Забыли?</a>
+            </div>
+            <input type="password" id="password" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn-submit">Войти в систему</button>
+    </form>
+
+    <div class="footer-text">
+        Нет аккаунта? <a href="register.html">Создать профиль</a>
+    </div>
+</div>
+
+<script>
+    document.getElementById('login-form').onsubmit = function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value.trim();
+        const pass = document.getElementById('password').value;
+        const errorBox = document.getElementById('error-message');
+
+        // 1. Получаем список всех пользователей из localStorage
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+
+        // 2. Ищем пользователя с таким email и паролем
+        const user = users.find(u => u.email === email && u.password === pass);
+
+        if (user) {
+            // 3. Если найден — создаем сессию текущего пользователя
+            localStorage.setItem('currentUser', JSON.stringify(user));
+
+            // Скрываем ошибку и перенаправляем
+            errorBox.style.display = 'none';
+
+            // Редирект в зависимости от роли
+            if (user.role === 'mentor') {
+                window.location.href = 'dashboard_mentor.html';
+            } else {
+                window.location.href = 'dashboard_student.html';
+            }
+        } else {
+            // 4. Если не найден — показываем ошибку
+            errorBox.style.display = 'block';
+            // Очищаем поле пароля для безопасности
+            document.getElementById('password').value = '';
+        }
+    };
+
+    // Очистка сессии при переходе на логин (опционально, если хотите логаут)
+    // localStorage.removeItem('currentUser');
+</script>
+
+</body>
+</html>

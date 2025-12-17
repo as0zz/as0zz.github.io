@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Встречи | IT-Ментор</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4F46E5; --bg: #F3F4F6; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; color: #111827; }
+
+        header { background: white; padding: 1rem 5%; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 800; color: var(--primary); text-decoration: none; }
+
+        .container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+        .page-header { margin-bottom: 2rem; }
+
+        .meeting-card {
+            background: white; border-radius: 12px; padding: 1.5rem; border: 1px solid #E5E7EB;
+            margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;
+        }
+        .m-info h3 { margin: 0 0 0.5rem 0; font-size: 1.1rem; color: var(--primary); }
+        .m-details { font-size: 0.85rem; color: #6B7280; display: flex; gap: 15px; }
+        .m-mentor { font-weight: 600; color: #374151; }
+
+        .btn-book {
+            background: var(--primary); color: white; border: none; padding: 0.6rem 1.2rem;
+            border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .btn-book:disabled { background: #10B981; cursor: default; } /* Зеленый, если уже записан */
+        .btn-delete { background: #FEE2E2; color: #B91C1C; border: none; padding: 0.6rem; border-radius: 8px; cursor: pointer; }
+
+        .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
+        .badge-webinar { background: #EEF2FF; color: #4338CA; }
+        .badge-private { background: #ECFDF5; color: #065F46; }
+
+        .empty-state { text-align: center; padding: 4rem 2rem; background: white; border-radius: 12px; border: 2px dashed #D1D5DB; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">⚡ IT-Mentor</a>
+        <a href="#" id="back-link" style="text-decoration:none; color:#4B5563; font-size:0.9rem;">← В кабинет</a>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 id="page-title">Все доступные встречи</h1>
+            <p id="page-desc">Найдите подходящее событие и забронируйте место.</p>
+        </div>
+
+        <div id="meetings-container">
+            </div>
+    </div>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const allMeetings = JSON.parse(localStorage.getItem('all_meetings')) || [];
+
+        if (!currentUser) window.location.href = 'login.html';
+
+        document.getElementById('back-link').href = currentUser.role === 'mentor' ? 'dashboard_mentor.html' : 'dashboard_student.html';
+
+        function renderMeetings() {
+            const container = document.getElementById('meetings-container');
+            container.innerHTML = '';
+
+            // Фильтрация: Ментор видит только свои, Студент — все
+            const meetingsToShow = currentUser.role === 'mentor'
+                ? allMeetings.filter(m => m.mentorId === currentUser.id)
+                : allMeetings;
+
+            if (currentUser.role === 'mentor') {
+                document.getElementById('page-title').textContent = 'Мои созданные события';
+                document.getElementById('page-desc').textContent = 'Управляйте своими воркшопами и смотрите список участников.';
+            }
+
+            if (meetingsToShow.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>Пока нет запланированных встреч.</p>
+                        ${currentUser.role === 'mentor' ? '<a href="create_meeting.html" style="color:var(--primary)">Создать первую?</a>' : ''}
+                    </div>`;
+                return;
+            }
+
+            meetingsToShow.forEach(m => {
+                const isSignedUp = m.participants.includes(currentUser.id);
+                const card = document.createElement('div');
+                card.className = 'meeting-card';
+
+                card.innerHTML = `
+                    <div class="m-info">
+                        <span class="badge badge-${m.type}">${m.type}</span>
+                        <h3>${m.title}</h3>
+                        <div class="m-details">
+                            <span>📅 ${m.date}</span>
+                            <span>⏰ ${m.time}</span>
+                            <span class="m-mentor">👤 ${m.mentorName}</span>
+                        </div>
+                    </div>
+                    <div class="m-actions">
+                        ${currentUser.role === 'student' ? `
+                            <button class="btn-book" ${isSignedUp ? 'disabled' : ''} onclick="signUp(${m.id})">
+                                ${isSignedUp ? '✓ Вы записаны' : 'Записаться'}
+                            </button>
+                        ` : `
+                            <div style="text-align:right">
+                                <small style="display:block; margin-bottom:5px; color:#6B7280">Участников: ${m.participants.length}</small>
+                                <button class="btn-delete" onclick="deleteMeeting(${m.id})">🗑 Удалить</button>
+                            </div>
+                        `}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Логика записи студента
+        function signUp(meetingId) {
+            const meetings = JSON.parse(localStorage.getItem('all_meetings'));
+            const meeting = meetings.find(m => m.id === meetingId);
+
+            if (!meeting.participants.includes(currentUser.id)) {
+                meeting.participants.push(currentUser.id);
+                localStorage.setItem('all_meetings', JSON.stringify(meetings));
+                alert('Вы успешно записаны на встречу!');
+                renderMeetings();
+            }
+        }
+
+        // Логика удаления встречи (для ментора)
+        function deleteMeeting(meetingId) {
+            if (confirm('Удалить это событие?')) {
+                const meetings = JSON.parse(localStorage.getItem('all_meetings'));
+                const filtered = meetings.filter(m => m.id !== meetingId);
+                localStorage.setItem('all_meetings', JSON.stringify(filtered));
+                location.reload();
+            }
+        }
+
+        renderMeetings();
+    </script>
+</body>
+</html>

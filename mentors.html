@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск ментора | IT-Ментор</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4F46E5; --bg: #F3F4F6; --text: #111827; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; color: var(--text); }
+
+        header { background: white; padding: 1rem 5%; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 800; color: var(--primary); text-decoration: none; font-size: 1.25rem; }
+        .back-link { text-decoration: none; color: #4B5563; font-weight: 500; font-size: 0.9rem; }
+
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; display: grid; grid-template-columns: 280px 1fr; gap: 2rem; }
+
+        /* Фильтры */
+        .sidebar { background: white; padding: 1.5rem; border-radius: 12px; height: fit-content; border: 1px solid #E5E7EB; }
+        .sidebar h3 { margin-top: 0; font-size: 1.1rem; }
+        .filter-group { margin-bottom: 1.5rem; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #6B7280; }
+        select { width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid #D1D5DB; }
+
+        /* Сетка карточек */
+        .mentors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .mentor-card { background: white; border-radius: 12px; padding: 1.5rem; border: 1px solid #E5E7EB; position: relative; transition: 0.2s; }
+        .mentor-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+
+        .fav-btn { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #D1D5DB; }
+        .fav-btn.active { color: #EF4444; }
+
+        .m-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+        .m-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background: #EEF2FF; }
+        .m-name { font-weight: 700; margin: 0; font-size: 1.1rem; }
+        .m-tag { font-size: 0.75rem; color: var(--primary); background: #EEF2FF; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+
+        .m-bio { font-size: 0.9rem; color: #4B5563; line-height: 1.5; margin-bottom: 1.5rem; }
+
+        .card-footer { display: flex; gap: 0.5rem; }
+        .btn { flex: 1; padding: 0.6rem; border-radius: 8px; text-decoration: none; text-align: center; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; }
+        .btn-chat { background: #EEF2FF; color: var(--primary); }
+        .btn-meet { background: var(--primary); color: white; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">⚡ IT-Mentor</a>
+        <a href="dashboard_student.html" class="back-link">← В кабинет</a>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <h3>Фильтры</h3>
+            <div class="filter-group">
+                <label>Направление</label>
+                <select id="filter-spec" onchange="renderMentors()">
+                    <option value="all">Все направления</option>
+                    <option value="frontend">Frontend</option>
+                    <option value="backend">Backend</option>
+                    <option value="mobile">Mobile</option>
+                </select>
+            </div>
+            <p style="font-size: 0.8rem; color: #9CA3AF;">Показываются только реальные пользователи с ролью "Ментор"</p>
+        </aside>
+
+        <main class="mentors-grid" id="mentors-list">
+            </main>
+    </div>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+        function renderMentors() {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const filterValue = document.getElementById('filter-spec').value;
+            const container = document.getElementById('mentors-list');
+
+            // 1. Фильтруем только менторов
+            let mentors = users.filter(u => u.role === 'mentor');
+
+            // 2. Применяем фильтр по специализации
+            if (filterValue !== 'all') {
+                mentors = mentors.filter(m => m.specialization === filterValue);
+            }
+
+            container.innerHTML = '';
+
+            if (mentors.length === 0) {
+                container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                    <p style="color: #6B7280;">Менторов в этой категории пока нет. Станьте первым!</p>
+                </div>`;
+                return;
+            }
+
+            // 3. Создаем карточки
+            mentors.forEach(mentor => {
+                const isFav = currentUser && currentUser.favorites && currentUser.favorites.includes(mentor.id);
+
+                const card = document.createElement('div');
+                card.className = 'mentor-card';
+                card.innerHTML = `
+                    <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(${mentor.id})">❤</button>
+                    <div class="m-header">
+                        <img src="${mentor.avatar}" class="m-avatar">
+                        <div>
+                            <h4 class="m-name">${mentor.name}</h4>
+                            <span class="m-tag">${mentor.specialization.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <p class="m-bio">Опытный эксперт в ${mentor.specialization}. Готов помочь с проектами, код-ревью и подготовкой к собеседованиям.</p>
+                    <div class="card-footer">
+                        <a href="chat.html?with=${mentor.id}" class="btn btn-chat">Написать</a>
+                        <a href="my_meetings.html?book=${mentor.id}" class="btn btn-meet">Встречи</a>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Функция добавления в избранное
+        function toggleFav(mentorId) {
+            if (!currentUser) return alert('Войдите, чтобы добавлять в избранное');
+
+            let users = JSON.parse(localStorage.getItem('users'));
+            let userInDb = users.find(u => u.id === currentUser.id);
+
+            if (!userInDb.favorites) userInDb.favorites = [];
+
+            const index = userInDb.favorites.indexOf(mentorId);
+            if (index > -1) {
+                userInDb.favorites.splice(index, 1);
+            } else {
+                userInDb.favorites.push(mentorId);
+            }
+
+            // Обновляем данные везде
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('currentUser', JSON.stringify(userInDb));
+
+            renderMentors(); // Перерисовываем
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', renderMentors);
+    </script>
+</body>
+</html>

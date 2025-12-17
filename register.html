@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация | IT-Ментор</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4F46E5; --bg: #F3F4F6; --text: #1F2937; }
+        body {
+            font-family: 'Inter', sans-serif; background-color: var(--bg);
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
+        }
+        .auth-card {
+            background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 100%; max-width: 450px; box-sizing: border-box;
+        }
+        .logo { text-align: center; color: var(--primary); font-weight: 800; font-size: 1.5rem; margin-bottom: 1rem; display: block; text-decoration: none; }
+        h2 { text-align: center; margin: 0 0 1.5rem; font-size: 1.25rem; }
+
+        .role-selector {
+            display: flex; background: #F3F4F6; padding: 4px; border-radius: 10px; margin-bottom: 1.5rem;
+        }
+        .role-btn {
+            flex: 1; border: none; padding: 10px; border-radius: 8px; cursor: pointer;
+            font-weight: 600; color: #6B7280; background: none; transition: 0.2s;
+        }
+        .role-btn.active { background: white; color: var(--primary); shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #374151; }
+        input, select {
+            width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px;
+            box-sizing: border-box; font-size: 0.95rem;
+        }
+        input:focus { outline: none; border-color: var(--primary); ring: 2px solid #EEF2FF; }
+
+        .error-msg { color: #EF4444; font-size: 0.8rem; margin-top: 0.3rem; display: none; }
+
+        .btn-submit {
+            width: 100%; background: var(--primary); color: white; padding: 0.8rem;
+            border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 1rem;
+        }
+        .footer-text { text-align: center; margin-top: 1rem; font-size: 0.9rem; color: #6B7280; }
+        .footer-text a { color: var(--primary); text-decoration: none; font-weight: 600; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="auth-card">
+    <a href="index.html" class="logo">⚡ IT-Ментор</a>
+    <h2 id="form-title">Создать аккаунт</h2>
+
+    <div class="role-selector">
+        <button class="role-btn active" id="btn-student" onclick="setRole('student')">Студент</button>
+        <button class="role-btn" id="btn-mentor" onclick="setRole('mentor')">Ментор</button>
+    </div>
+
+    <form id="register-form">
+        <div class="form-group">
+            <label>Имя и Фамилия</label>
+            <input type="text" id="full-name" placeholder="Иван Иванов" required>
+        </div>
+
+        <div class="form-group">
+            <label>Корпоративный Email</label>
+            <input type="email" id="email" placeholder="alex@company.com" required>
+            <div id="email-error" class="error-msg">Используйте рабочий email (не gmail/mail/yandex).</div>
+        </div>
+
+        <div class="form-group">
+            <label>Пароль</label>
+            <input type="password" id="password" minlength="6" required>
+        </div>
+
+        <div id="mentor-extra" class="hidden">
+            <div class="form-group">
+                <label>Специализация</label>
+                <select id="spec">
+                    <option value="frontend">Frontend (React/Vue)</option>
+                    <option value="backend">Backend (Node/Python/Go)</option>
+                    <option value="mobile">Mobile (Flutter/RN)</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">Зарегистрироваться</button>
+    </form>
+
+    <div class="footer-text">
+        Уже есть аккаунт? <a href="login.html">Войти</a>
+    </div>
+</div>
+
+<script>
+    let currentRole = 'student';
+
+    // 1. Авто-определение роли из URL
+    window.onload = () => {
+        const params = new URLSearchParams(window.location.search);
+        const role = params.get('role');
+        if (role) setRole(role);
+    };
+
+    function setRole(role) {
+        currentRole = role;
+        document.getElementById('btn-student').className = role === 'student' ? 'role-btn active' : 'role-btn';
+        document.getElementById('btn-mentor').className = role === 'mentor' ? 'role-btn active' : 'role-btn';
+        document.getElementById('mentor-extra').classList.toggle('hidden', role !== 'mentor');
+    }
+
+    // 2. Логика регистрации
+    document.getElementById('register-form').onsubmit = function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value;
+        const name = document.getElementById('full-name').value;
+        const pass = document.getElementById('password').value;
+        const emailError = document.getElementById('email-error');
+
+        // Валидация корпоративной почты
+        // Список бесплатных доменов для запрета
+        const forbiddenDomains = ['gmail.com', 'mail.ru', 'yandex.ru', 'bk.ru', 'list.ru', 'outlook.com'];
+        const domain = email.split('@')[1];
+
+        if (forbiddenDomains.includes(domain)) {
+            emailError.style.display = 'block';
+            return;
+        } else {
+            emailError.style.display = 'none';
+        }
+
+        // 3. Сохранение в базу (LocalStorage)
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+
+        // Проверка, не занят ли email
+        if (users.find(u => u.email === email)) {
+            alert('Пользователь с таким email уже существует!');
+            return;
+        }
+
+        const newUser = {
+            id: Date.now(),
+            name: name,
+            email: email,
+            password: pass,
+            role: currentRole,
+            specialization: currentRole === 'mentor' ? document.getElementById('spec').value : null,
+            favorites: [], // Для студентов
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
+        };
+
+        users.push(newUser);
+        localStorage.setItem('users', JSON.stringify(users));
+
+        // Автоматический вход после регистрации
+        localStorage.setItem('currentUser', JSON.stringify(newUser));
+
+        alert('Регистрация успешна!');
+        window.location.href = currentRole === 'mentor' ? 'dashboard_mentor.html' : 'dashboard_student.html';
+    };
+</script>
+
+</body>
+</html>

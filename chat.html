@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат | IT-Ментор</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4F46E5; --bg: #F3F4F6; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; height: 100vh; display: flex; flex-direction: column; }
+
+        header { background: white; padding: 0.75rem 5%; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center; shrink: 0; }
+        .logo { font-weight: 800; color: var(--primary); text-decoration: none; }
+
+        .chat-container { flex: 1; display: flex; max-width: 1200px; width: 100%; margin: 0 auto; overflow: hidden; background: white; }
+
+        /* Список контактов (лево) */
+        .contacts-bar { width: 300px; border-right: 1px solid #E5E7EB; display: flex; flex-direction: column; background: #F9FAFB; }
+        .contacts-header { padding: 1.5rem; border-bottom: 1px solid #E5E7EB; font-weight: 700; }
+        .contact-item { padding: 1rem; border-bottom: 1px solid #E5E7EB; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .contact-item:hover { background: #EEF2FF; }
+        .contact-item.active { background: white; border-left: 4px solid var(--primary); }
+
+        /* Окно сообщений (право) */
+        .chat-main { flex: 1; display: flex; flex-direction: column; }
+        .chat-header { padding: 1rem 1.5rem; border-bottom: 1px solid #E5E7EB; display: flex; align-items: center; gap: 12px; }
+
+        .messages-area { flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; background: #FFF; }
+
+        /* Стили сообщений */
+        .msg { max-width: 70%; padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.95rem; position: relative; }
+        .msg-sent { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+        .msg-received { align-self: flex-start; background: #F3F4F6; color: #1F2937; border-bottom-left-radius: 2px; }
+        .msg-time { font-size: 0.7rem; opacity: 0.7; margin-top: 4px; display: block; text-align: right; }
+
+        /* Ввод */
+        .input-area { padding: 1.5rem; border-top: 1px solid #E5E7EB; display: flex; gap: 10px; }
+        input { flex: 1; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px; outline: none; }
+        input:focus { border-color: var(--primary); }
+        .btn-send { background: var(--primary); color: white; border: none; padding: 0 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">⚡ IT-Mentor</a>
+        <a href="dashboard_student.html" id="back-btn" style="text-decoration:none; color:#4B5563; font-size:0.9rem;">← Назад</a>
+    </header>
+
+    <div class="chat-container">
+        <aside class="contacts-bar">
+            <div class="contacts-header">Сообщения</div>
+            <div id="contacts-list">
+                </div>
+        </aside>
+
+        <main class="chat-main">
+            <div class="chat-header">
+                <img id="chat-avatar" src="" style="width:40px; height:40px; border-radius:50%; display:none;">
+                <div>
+                    <strong id="chat-with-name">Выберите чат</strong>
+                    <div id="chat-status" style="font-size:0.75rem; color:#10B981;"></div>
+                </div>
+            </div>
+
+            <div class="messages-area" id="msg-container">
+                </div>
+
+            <form class="input-area" id="chat-form">
+                <input type="text" id="msg-input" placeholder="Напишите сообщение..." autocomplete="off">
+                <button type="submit" class="btn-send">Отправить</button>
+            </form>
+        </main>
+    </div>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+
+        // Получаем ID собеседника из URL
+        const params = new URLSearchParams(window.location.search);
+        let activeChatId = params.get('with') ? parseInt(params.get('with')) : null;
+
+        if (!currentUser) window.location.href = 'login.html';
+
+        // Настройка кнопки назад
+        document.getElementById('back-btn').href = currentUser.role === 'mentor' ? 'dashboard_mentor.html' : 'dashboard_student.html';
+
+        function renderChat() {
+            const container = document.getElementById('msg-container');
+            const messages = JSON.parse(localStorage.getItem('chat_messages')) || [];
+
+            // Фильтруем сообщения именно для этой пары пользователей
+            const currentChatMsgs = messages.filter(m =>
+                (m.from === currentUser.id && m.to === activeChatId) ||
+                (m.from === activeChatId && m.to === currentUser.id)
+            );
+
+            container.innerHTML = '';
+
+            if (!activeChatId) {
+                container.innerHTML = '<div style="margin:auto; color:#9CA3AF;">Выберите, кому хотите написать</div>';
+                return;
+            }
+
+            // Находим данные собеседника
+            const interlocutor = users.find(u => u.id === activeChatId);
+            if (interlocutor) {
+                document.getElementById('chat-with-name').textContent = interlocutor.name;
+                document.getElementById('chat-avatar').src = interlocutor.avatar;
+                document.getElementById('chat-avatar').style.display = 'block';
+                document.getElementById('chat-status').textContent = 'В сети';
+            }
+
+            currentChatMsgs.forEach(m => {
+                const div = document.createElement('div');
+                div.className = `msg ${m.from === currentUser.id ? 'msg-sent' : 'msg-received'}`;
+                div.innerHTML = `${m.text} <span class="msg-time">${m.time}</span>`;
+                container.appendChild(div);
+            });
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Отправка сообщения
+        document.getElementById('chat-form').onsubmit = (e) => {
+            e.preventDefault();
+            const input = document.getElementById('msg-input');
+            if (!input.value.trim() || !activeChatId) return;
+
+            const messages = JSON.parse(localStorage.getItem('chat_messages')) || [];
+            const newMsg = {
+                from: currentUser.id,
+                to: activeChatId,
+                text: input.value,
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            };
+
+            messages.push(newMsg);
+            localStorage.setItem('chat_messages', JSON.stringify(messages));
+
+            input.value = '';
+            renderChat();
+        };
+
+        // Рендер списка контактов (все менторы для студента, или все студенты для ментора)
+        function renderContacts() {
+            const list = document.getElementById('contacts-list');
+            const roleToFind = currentUser.role === 'mentor' ? 'student' : 'mentor';
+            const contacts = users.filter(u => u.role === roleToFind);
+
+            list.innerHTML = '';
+            contacts.forEach(c => {
+                const div = document.createElement('div');
+                div.className = `contact-item ${activeChatId === c.id ? 'active' : ''}`;
+                div.onclick = () => {
+                    window.location.href = `chat.html?with=${c.id}`;
+                };
+                div.innerHTML = `
+                    <img src="${c.avatar}" style="width:35px; height:35px; border-radius:50%;">
+                    <div>
+                        <div style="font-weight:600; font-size:0.85rem;">${c.name}</div>
+                        <div style="font-size:0.7rem; color:#6B7280;">Нажмите, чтобы открыть чат</div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        renderContacts();
+        renderChat();
+    </script>
+</body>
+</html>

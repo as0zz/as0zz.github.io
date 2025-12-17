@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой Профиль | IT-Ментор</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4F46E5; --bg: #F3F4F6; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; }
+        header { background: white; padding: 1rem 5%; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; }
+
+        .container { max-width: 600px; margin: 3rem auto; background: white; padding: 2.5rem; border-radius: 16px; border: 1px solid #E5E7EB; }
+        .p-header { text-align: center; margin-bottom: 2rem; }
+        .p-avatar { width: 100px; height: 100px; border-radius: 50%; margin-bottom: 1rem; border: 4px solid #F3F4F6; }
+
+        .info-group { margin-bottom: 1.5rem; }
+        .info-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #6B7280; margin-bottom: 0.3rem; }
+        .info-group div { font-size: 1.1rem; font-weight: 500; color: #111827; padding: 0.5rem 0; border-bottom: 1px solid #F3F4F6; }
+
+        .btn-logout { width: 100%; padding: 0.8rem; background: #FEF2F2; color: #B91C1C; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 1rem; }
+        .btn-back { display: block; text-align: center; text-decoration: none; color: var(--primary); font-size: 0.9rem; margin-top: 1.5rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" style="font-weight:800; color:var(--primary); text-decoration:none;">⚡ IT-Mentor</a>
+    </header>
+
+    <div class="container">
+        <div class="p-header">
+            <img id="u-avatar" src="" class="p-avatar">
+            <h2 id="u-name" style="margin:0">Загрузка...</h2>
+            <p id="u-role" style="color:#6B7280; margin:5px 0 0; text-transform: capitalize;"></p>
+        </div>
+
+        <div class="info-group">
+            <label>Email</label>
+            <div id="u-email">...</div>
+        </div>
+
+        <div id="spec-block" class="info-group" style="display:none;">
+            <label>Специализация</label>
+            <div id="u-spec">...</div>
+        </div>
+
+        <button onclick="logout()" class="btn-logout">Выйти из аккаунта</button>
+        <a href="#" id="back-dash" class="btn-back">Вернуться в кабинет</a>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        if (!user) window.location.href = 'login.html';
+
+        document.getElementById('u-avatar').src = user.avatar;
+        document.getElementById('u-name').textContent = user.name;
+        document.getElementById('u-email').textContent = user.email;
+        document.getElementById('u-role').textContent = user.role === 'mentor' ? 'Эксперт / Ментор' : 'Студент / Стажер';
+        document.getElementById('back-dash').href = user.role === 'mentor' ? 'dashboard_mentor.html' : 'dashboard_student.html';
+
+        if (user.role === 'mentor') {
+            document.getElementById('spec-block').style.display = 'block';
+            document.getElementById('u-spec').textContent = user.specialization.toUpperCase();
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

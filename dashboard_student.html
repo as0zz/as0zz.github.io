@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кабинет Студента | IT-Ментор</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4F46E5; --bg: #F3F4F6; --text: #111827; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; color: var(--text); }
+
+        header { background: white; padding: 1rem 5%; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 800; color: var(--primary); text-decoration: none; font-size: 1.25rem; }
+        .nav-links a { text-decoration: none; color: #4B5563; font-weight: 500; margin-left: 1.5rem; font-size: 0.9rem; }
+        .btn-logout { color: #EF4444 !important; cursor: pointer; }
+
+        .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+
+        .welcome-card {
+            background: linear-gradient(135deg, var(--primary), #6366F1);
+            border-radius: 16px; padding: 2rem; color: white; margin-bottom: 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .welcome-text h1 { margin: 0; font-size: 1.75rem; }
+        .welcome-text p { opacity: 0.9; margin: 0.5rem 0 0; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-box { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #E5E7EB; }
+        .stat-box h3 { margin: 0; font-size: 0.85rem; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; margin-top: 0.5rem; display: block; }
+
+        .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .btn-action { background: var(--primary); color: white; text-decoration: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; }
+
+        .empty-state { background: white; padding: 3rem; text-align: center; border-radius: 12px; border: 2px dashed #D1D5DB; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">⚡ IT-Mentor</a>
+        <nav class="nav-links">
+            <a href="mentors.html">Найти ментора</a>
+            <a href="my_meetings.html">Мои встречи</a>
+            <a href="chat.html">Сообщения</a>
+            <a href="profile.html">Профиль</a>
+            <a onclick="logout()" class="btn-logout">Выйти</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="welcome-card">
+            <div class="welcome-text">
+                <h1 id="welcome-name">Загрузка...</h1>
+                <p>Твой путь в IT становится проще. Сегодня запланировано 0 встреч.</p>
+            </div>
+            <img id="user-avatar" src="" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid white;">
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <h3>Активных курсов</h3>
+                <span class="stat-value">0</span>
+            </div>
+            <div class="stat-box">
+                <h3>Часов с менторами</h3>
+                <span class="stat-value">0</span>
+            </div>
+            <div class="stat-box">
+                <h3>Избранные менторы</h3>
+                <span id="fav-count" class="stat-value">0</span>
+            </div>
+        </div>
+
+        <div class="section-title">
+            <h2>Ближайшие встречи</h2>
+            <a href="mentors.html" class="btn-action">+ Найти ментора</a>
+        </div>
+
+        <div class="empty-state" id="meetings-list">
+            <p style="color: #6B7280; margin: 0;">У вас пока нет запланированных встреч. Найдите своего первого наставника!</p>
+        </div>
+    </div>
+
+    <script>
+        // 1. ПРОВЕРКА АВТОРИЗАЦИИ
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+        if (!currentUser || currentUser.role !== 'student') {
+            // Если не вошел или не студент — редирект на логин
+            window.location.href = 'login.html';
+        } else {
+            // 2. ЗАПОЛНЕНИЕ ДАННЫХ
+            document.getElementById('welcome-name').textContent = `Привет, ${currentUser.name}! 👋`;
+            document.getElementById('user-avatar').src = currentUser.avatar;
+            document.getElementById('fav-count').textContent = (currentUser.favorites || []).length;
+
+            // Если есть реальные встречи (будем добавлять позже), скроем empty-state
+        }
+
+        // 3. ФУНКЦИЯ ВЫХОДА
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

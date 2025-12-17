@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создать событие | IT-Ментор</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #6366F1; --bg: #F9FAFB; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+
+        .form-card {
+            max-width: 600px; margin: 40px auto; background: white;
+            padding: 2.5rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+        h1 { font-size: 1.5rem; margin-bottom: 2rem; color: #111827; }
+
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #374151; }
+        input, select, textarea {
+            width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px;
+            box-sizing: border-box; font-size: 1rem; font-family: inherit;
+        }
+        textarea { height: 100px; resize: none; }
+        input:focus { outline: none; border-color: var(--primary); }
+
+        .btn-group { display: flex; gap: 1rem; margin-top: 2rem; }
+        .btn { flex: 1; padding: 0.8rem; border-radius: 8px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; border: none; }
+        .btn-save { background: var(--primary); color: white; }
+        .btn-cancel { background: #F3F4F6; color: #4B5563; }
+    </style>
+</head>
+<body>
+
+    <div class="form-card">
+        <h1>🚀 Создать новую встречу</h1>
+        <form id="meeting-form">
+            <div class="form-group">
+                <label>Название воркшопа / сессии</label>
+                <input type="text" id="m-title" placeholder="Напр: Разбор React Hooks на практике" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Дата</label>
+                    <input type="date" id="m-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Время</label>
+                    <input type="time" id="m-time" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Тип встречи</label>
+                <select id="m-type">
+                    <option value="webinar">Публичный вебинар</option>
+                    <option value="private">Приватная консультация (1-на-1)</option>
+                    <option value="qa">Q&A Сессия</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Описание и требования к студентам</label>
+                <textarea id="m-desc" placeholder="О чем будем говорить? Нужна ли подготовка?"></textarea>
+            </div>
+
+            <div class="btn-group">
+                <a href="dashboard_mentor.html" class="btn btn-cancel">Отмена</a>
+                <button type="submit" class="btn btn-save">Опубликовать</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+        // Проверка прав доступа
+        if (!currentUser || currentUser.role !== 'mentor') {
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('meeting-form').onsubmit = function(e) {
+            e.preventDefault();
+
+            // Создаем объект встречи
+            const newMeeting = {
+                id: Date.now(),
+                mentorId: currentUser.id,
+                mentorName: currentUser.name,
+                title: document.getElementById('m-title').value,
+                date: document.getElementById('m-date').value,
+                time: document.getElementById('m-time').value,
+                type: document.getElementById('m-type').value,
+                desc: document.getElementById('m-desc').value,
+                participants: [] // Список ID студентов, которые запишутся
+            };
+
+            // Сохраняем в "базу"
+            const meetings = JSON.parse(localStorage.getItem('all_meetings')) || [];
+            meetings.push(newMeeting);
+            localStorage.setItem('all_meetings', JSON.stringify(meetings));
+
+            alert('Встреча успешно создана!');
+            window.location.href = 'dashboard_mentor.html';
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT-Ментор | Начни путь в IT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --secondary: #10B981;
+            --text-main: #111827;
+            --text-muted: #6B7280;
+            --bg-light: #F9FAFB;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background-color: white;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 5%;
+            background: white;
+            border-bottom: 1px solid #E5E7EB;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-left: 2rem;
+            transition: color 0.2s;
+        }
+
+        nav a:hover { color: var(--primary); }
+
+        .btn-login {
+            background: var(--bg-light);
+            color: var(--primary);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+        }
+
+        .hero {
+            padding: 100px 5%;
+            text-align: center;
+            background: radial-gradient(circle at top right, #EEF2FF, transparent);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .role-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            border: 1px solid #E5E7EB;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+
+        .role-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .role-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .cta-mentor { background: var(--text-main); }
+
+        #user-status { font-weight: 600; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">⚡ IT-Mentor</a>
+        <nav id="nav-menu">
+            <a href="mentors.html">Найти ментора</a>
+            <a href="login.html" class="btn-login" id="auth-link">Войти</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>Ускорь свой путь <br><span style="color: var(--primary);">в IT-индустрию</span></h1>
+            <p>Практика с экспертами из топовых компаний. Выбирай ментора, записывайся на воркшопы и развивай навыки быстрее.</p>
+
+            <div class="roles-grid">
+                <div class="role-card">
+                    <div class="role-icon">🎓</div>
+                    <h3>Я — Студент</h3>
+                    <p>Хочу получить фидбек по коду, подготовиться к интервью и найти первую работу.</p>
+                    <a href="register.html?role=student" class="cta-button">Найти наставника</a>
+                </div>
+
+                <div class="role-card">
+                    <div class="role-icon">💡</div>
+                    <h3>Я — Ментор</h3>
+                    <p>Хочу делиться опытом, развивать личный бренд и помогать талантам расти.</p>
+                    <a href="register.html?role=mentor" class="cta-button cta-mentor">Стать экспертом</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // ЛОГИКА ПРОВЕРКИ АВТОРИЗАЦИИ
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            const authLink = document.getElementById('auth-link');
+
+            if (currentUser) {
+                // Если пользователь вошел, меняем "Войти" на его Имя
+                authLink.textContent = 'Личный кабинет';
+                authLink.href = currentUser.role === 'mentor' ? 'dashboard_mentor.html' : 'dashboard_student.html';
+                authLink.classList.remove('btn-login');
+                authLink.style.color = 'var(--primary)';
+            }
+        });
+    </script>
+</body>
+</html>
